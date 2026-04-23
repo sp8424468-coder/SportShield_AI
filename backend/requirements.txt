@@ -1,5 +1,13 @@
 fastapi
 uvicorn
-pillow
-imagehash
 python-multipart
+pydantic
+python-dotenv
+fastapi-mail
+Pillow
+imagehash
+numpy
+scikit-learn
+torch
+torchvision
+transformers
