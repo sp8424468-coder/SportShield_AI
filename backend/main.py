@@ -23,3 +23,12 @@ app.include_router(posts.router)
 app.include_router(users.router)
 
 app.mount("/temp_images", StaticFiles(directory="temp_images"), name="images")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8080))
+    )

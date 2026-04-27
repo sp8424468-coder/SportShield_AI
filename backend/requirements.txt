@@ -11,3 +11,7 @@ scikit-learn
 torch
 torchvision
 transformers
+python-jose
+passlib[bcrypt]
+email-validator
+ftfy
