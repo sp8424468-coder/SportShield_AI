@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import scan, posts, users
+from backend.routes import scan, posts, users
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
