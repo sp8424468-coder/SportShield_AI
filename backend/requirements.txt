@@ -7,10 +7,6 @@ fastapi-mail
 Pillow
 imagehash
 numpy
-scikit-learn
-torch
-torchvision
-transformers
 python-jose
 passlib[bcrypt]
 email-validator
