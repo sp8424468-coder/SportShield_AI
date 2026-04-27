@@ -4,10 +4,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from backend.utils.file_handler import save_temp_file, delete_file
 
 # ✅ AI (CLIP)
-from ai.embedding import get_embedding, cosine_similarity
+from backend.ai.embedding import get_embedding, cosine_similarity
 
 # ✅ pHash
-from ai.detection import compare_images
+from backend.ai.detection import compare_images
 
 from database.memory_db import posts_db
 from database.users_db import users_db
