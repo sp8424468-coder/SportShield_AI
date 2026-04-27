@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from utils.file_handler import save_temp_file, delete_file
+from backend.utils.file_handler import save_temp_file, delete_file
 
 # ✅ AI (CLIP)
 from ai.embedding import get_embedding, cosine_similarity
