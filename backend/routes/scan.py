@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 
 from backend.ai.detection import compare_images
-from utils.file_handler import save_temp_file, delete_file
+from backend.utils.file_handler import save_temp_file, delete_file
 
 router = APIRouter()
 
