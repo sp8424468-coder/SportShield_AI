@@ -5,16 +5,8 @@ pydantic
 python-dotenv
 fastapi-mail
 Pillow
-imagehash
 numpy
-scikit-learn
-transformers
+requests
 python-jose
 passlib[bcrypt]
 email-validator
-ftfy
-
-torch
-torchvision
-
-git+https://github.com/openai/CLIP.git
