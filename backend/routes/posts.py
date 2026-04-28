@@ -4,8 +4,8 @@ import requests
 
 from backend.utils.file_handler import save_temp_file, delete_file
 
-from database.memory_db import posts_db
-from database.users_db import users_db
+from backend.database.memory_db import posts_db
+from backend.database.users_db import users_db
 from auth.jwt_handler import verify_token
 
 router = APIRouter()
