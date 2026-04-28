@@ -10,3 +10,4 @@ requests
 python-jose
 passlib[bcrypt]
 email-validator
+imagehash
