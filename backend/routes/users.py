@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 from backend.database.users_db import users_db
 from backend.database.memory_db import posts_db
-from auth.jwt_handler import create_access_token
+from backend.auth.jwt_handler import create_access_token
 
 from dotenv import load_dotenv
 
