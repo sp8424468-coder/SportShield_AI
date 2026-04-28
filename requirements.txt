@@ -14,8 +14,7 @@ passlib[bcrypt]
 email-validator
 ftfy
 
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.2.2+cpu
-torchvision==0.17.2+cpu
+torch
+torchvision
 
 git+https://github.com/openai/CLIP.git
