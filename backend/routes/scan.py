@@ -1,12 +1,10 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 import requests
 
-from backend.ai.detection import compare_images  # keep it (no delete)
 from backend.utils.file_handler import save_temp_file, delete_file
 
 router = APIRouter()
 
-# 🔥 Hugging Face API URL
 HF_URL = "https://swathishettigar-swathi.hf.space/run/predict"
 
 def get_similarity_from_hf(img1_path, img2_path):
@@ -30,12 +28,10 @@ async def scan(
     img2_path = save_temp_file(img2)
 
     try:
-        # 🔥 USE HUGGING FACE INSTEAD OF LOCAL MODEL
         result = get_similarity_from_hf(img1_path, img2_path)
 
         similarity = result["data"][0]
 
-        # Optional status logic (you can tune threshold)
         status = "Duplicate" if similarity > 0.9 else "Different"
 
         return {

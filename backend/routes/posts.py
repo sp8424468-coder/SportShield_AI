@@ -1,26 +1,30 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import requests
 
 from backend.utils.file_handler import save_temp_file, delete_file
-
-# ✅ AI (CLIP)
-from backend.ai.embedding import get_embedding, cosine_similarity
-
-# ✅ pHash
-from backend.ai.detection import compare_images
 
 from database.memory_db import posts_db
 from database.users_db import users_db
 from auth.jwt_handler import verify_token
 
 router = APIRouter()
-
-# 🔐 Security
 security = HTTPBearer()
+
+HF_URL = "https://swathishettigar-swathi.hf.space/run/predict"
+
+
+def get_similarity(img1, img2):
+    with open(img1, "rb") as f1, open(img2, "rb") as f2:
+        res = requests.post(
+            HF_URL,
+            files={"img1": f1, "img2": f2}
+        )
+    return res.json()["data"][0]
 
 
 # =========================
-# 🔐 AUTH DEPENDENCY
+# 🔐 AUTH
 # =========================
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
@@ -33,7 +37,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 
 
 # =========================
-# ❤️ LIKE SYSTEM
+# ❤️ LIKE
 # =========================
 @router.post("/like/{post_id}")
 def like_post(post_id: int, user_id: int):
@@ -58,7 +62,7 @@ def like_post(post_id: int, user_id: int):
 
 
 # =========================
-# 🚀 CREATE POST (HYBRID AI - FIXED)
+# 🚀 CREATE POST (HF BASED)
 # =========================
 @router.post("/create-post")
 async def create_post(
@@ -67,7 +71,6 @@ async def create_post(
 ):
     user_id = current_user.get("user_id")
 
-    # 🔍 Find user
     user = next((u for u in users_db if u["id"] == user_id), None)
 
     if not user:
@@ -76,52 +79,26 @@ async def create_post(
     if user.get("is_blocked"):
         raise HTTPException(status_code=403, detail="User is blocked")
 
-    # 💾 Save image
     img_path = save_temp_file(file)
 
     try:
-        # 🧠 AI EMBEDDING
-        new_embedding = get_embedding(img_path)
+        best_sim = 0
 
-        best_clip = 0
-        best_hash = 0
-
-        # 🔁 Compare with existing posts
         for post in posts_db:
             try:
-                # CLIP similarity
-                if "embedding" in post:
-                    clip_sim = cosine_similarity(new_embedding, post["embedding"])
-                    best_clip = max(best_clip, clip_sim)
-
-                # pHash similarity
-                hash_sim = compare_images(img_path, post["path"])["similarity"]
-                best_hash = max(best_hash, hash_sim)
-
-            except Exception:
+                sim = get_similarity(img_path, post["path"])
+                best_sim = max(best_sim, sim)
+            except:
                 continue
 
-        # =========================
-        # 🧠 FINAL DECISION (STRONG FIX)
-        # =========================
-
-        # 🔴 SAME IMAGE (very strict)
-        if best_hash >= 85 or best_clip >= 0.95:
+        # 🔥 Decision logic
+        if best_sim >= 0.95:
             status = "violation"
-
-        # 🟡 CROPPED / EDITED
-        elif best_hash >= 60:
+        elif best_sim >= 0.85:
             status = "suspicious"
-
-        # 🟡 AI DETECTS SIMILAR CONTENT
-        elif best_clip >= 0.88:
-            status = "suspicious"
-
-        # 🟢 SAFE
         else:
             status = "safe"
 
-        # 🚨 ENFORCEMENT
         if status == "violation":
             user["demerit_points"] += 1
 
@@ -132,20 +109,17 @@ async def create_post(
 
             return {
                 "status": status,
-                "clip_similarity": round(best_clip * 100, 2),
-                "hash_similarity": best_hash,
-                "message": "Post rejected (duplicate content)",
+                "similarity": best_sim,
+                "message": "Duplicate content",
                 "demerit_points": user["demerit_points"],
                 "is_blocked": user["is_blocked"]
             }
 
-        # ✅ SAVE POST
         new_post = {
             "id": len(posts_db) + 1,
             "user_id": user_id,
-            "username": user["username"],  # 🔥 ADD THIS
+            "username": user["username"],
             "path": img_path,
-            "embedding": new_embedding.tolist(),
             "status": status,
             "likes": [],
             "is_public": False if status == "suspicious" else True
@@ -155,12 +129,9 @@ async def create_post(
 
         return {
             "status": status,
-            "clip_similarity": round(best_clip * 100, 2),
-            "hash_similarity": best_hash,
-            "message": "Post uploaded successfully",
-            "post_id": new_post["id"],
-            "demerit_points": user["demerit_points"],
-            "is_blocked": user["is_blocked"]
+            "similarity": best_sim,
+            "message": "Uploaded",
+            "post_id": new_post["id"]
         }
 
     except Exception as e:
@@ -169,7 +140,7 @@ async def create_post(
 
 
 # =========================
-# 📄 GET POSTS (WITH USERNAME)
+# 📄 GET POSTS
 # =========================
 @router.get("/get-posts")
 def get_posts(current_user: dict = Depends(get_current_user)):
@@ -180,7 +151,6 @@ def get_posts(current_user: dict = Depends(get_current_user)):
     for p in posts_db:
         if p.get("is_public", True) or p["user_id"] == user_id:
 
-            # 🔥 Ensure username exists
             if "username" not in p:
                 user = next((u for u in users_db if u["id"] == p["user_id"]), None)
                 p["username"] = user["username"] if user else "Unknown"
